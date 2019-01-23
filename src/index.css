@@ -1,0 +1,10 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Courrier New", monospace;
+  background: linear-gradient(to right, #9EEBCF, #96CCFF); /* light-blue et light-green pour tachyons */
+}
+
+button {
+  cursor: pointer;
+}
