@@ -7,7 +7,8 @@ import Register from './components/Register/Register';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition'; // considère .js si rien
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import Rank from './components/Rank/Rank';
+import Greetings from './components/Greetings/Greetings';
+import Credits from './components/Credits/Credits';
 import './App.css';
 
 const app = new Clarifai.App({ // configure accès à l'API Clarifai
@@ -33,9 +34,18 @@ class App extends Component {
       input: '',
       imageUrl: '',
       box: {}, // va contenir valeurs reçues position visage
-      route: 'signin', // track où se situe dans la page
-      isSignedIn: false
+      route: 'signin', // traque où se situe dans la page
+      isSignedIn: false,
+      user: {
+        name: ''
+      }
     }
+  }
+
+  loadUser = (data) => {
+    this.setState({user: {
+      name: data.name,
+    }})
   }
 
   calculateFaceLocation = (data) => { // reçoit des data
@@ -59,16 +69,21 @@ class App extends Component {
     this.setState({input: event.target.value}); // set le contenu de l'input
   }
 
-  onButtonSubmit = () => {
+  onButtonSubmit = () => { // onPictureSubmit
     this.setState({imageUrl: this.state.input}) // pour passer l'url de l'image au composant FaceRecognition
     app.models
       .predict(
         Clarifai.FACE_DETECT_MODEL,
         this.state.input) // ne peut pas mettre directement imageUrl avec setState
-      .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
+      .then(response =>  {
+        if (response) {
+          fetch('http://localhost:3000/image')
+        }
+        this.displayFaceBox(this.calculateFaceLocation(response));
       // calculateFaceLocation(response) prend une réponse, renvoit un objet spécifiant coordonnées face-box
       // cet objet va dans displayFaceBox 
-      .catch(err => console.log(err))
+      })
+      .catch(err => console.log(err));
   }
 
   onRouteChange = (route) => {
@@ -91,7 +106,7 @@ class App extends Component {
         { route === 'home' // condition pour afficher
           ? <div>
               <Logo /> {/* sinon retourne (emballe dans une div pour affichage fonctionne) */}
-              <Rank />
+              <Greetings name={this.state.user.name}/>
               <ImageLinkForm 
                 onInputChange={this.onInputChange}  /* passe les props */
                 onButtonSubmit={this.onButtonSubmit} 
@@ -100,10 +115,11 @@ class App extends Component {
             </div>
           : (
               route === 'signin' 
-              ? <Signin onRouteChange={this.onRouteChange}/>
-              : <Register onRouteChange={this.onRouteChange}/>
+              ? <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
+              : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
             )
         }
+        <Credits/>
       </div>
     );
   }
